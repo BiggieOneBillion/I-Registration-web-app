@@ -1,14 +1,21 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { IsEmail } from 'class-validator';
-import mongoose, { Document } from 'mongoose';
+import mongoose, { Document, Types } from 'mongoose';
 import { User } from 'src/users/schemas/users.schema';
 
 export type EventDocument = Event & Document;
 
+type verifierDetailsType = {
+  email: string;
+  password: string;
+};
+
 @Schema()
 export class Event {
-  @Prop({ required: true, ref: 'User', type: mongoose.Schema.Types.ObjectId })
-  userId: string; // id of the user who created the event
+  // @Prop({ required: true, ref: 'User', type: mongoose.Schema.Types.ObjectId })
+  // userId: string;
+  @Prop({ required: true })
+  userId: string;
   @Prop({ required: true })
   name: string;
   @Prop({ required: true })
@@ -37,26 +44,31 @@ export class Event {
   title: string;
   @Prop({ required: true })
   description: string;
-  // Add a virtual field to populate the user document
-  // @Prop({
-  //   virtual: true,
-  //   ref: 'User',
-  //   localField: 'userId',
-  //   foreignField: '_id',
-  // })
-  // @Prop({virtual: true, ref: 'User', type: mongoose.Schema.Types.ObjectId })
-  user: User;
-
-
+  @Prop()
+  registrationUrl: string;
+  @Prop({ required: true })
+  registrationStartDate: string;
+  @Prop({ required: true })
+  registrationEndDate: string;
+  @Prop({ required: true })
+  authType: 'barcode' | 'pincode';
+  @Prop({ required: true })
+  haveVerifiers: boolean;
+  @Prop({ type: Object, default: {} })
+  verifiersDetails: { email?: string; password?: string } | object;
+  // ! would be implemented later if we want to have different credentials for different verifiers
+  // @Prop({ type: [Types.ObjectId], ref: 'Verifier' })  // List of verifiers for the event
+  // verifiers: Types.ObjectId[];
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);
 
-EventSchema.virtual('user', {
-  ref: 'User',               // The model to use
-  localField: 'userId',         // The field in the Event schema
-  foreignField: '_id',    // The field in the User schema that matches `localField`
+// Pre-save hook to generate the URL
+EventSchema.pre('save', function (next) {
+  if (!this.registrationUrl) {
+    const encodedId = btoa(this._id.toString());
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5173/'; // Make the base URL configurable
+    this.registrationUrl = `${baseUrl}${encodedId}`;
+  }
+  next();
 });
-
-EventSchema.set('toJSON', { virtuals: true });
-EventSchema.set('toObject', { virtuals: true });

@@ -1,8 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { IsEmail } from 'class-validator';
 import { Document } from 'mongoose';
 
-export type UserDocument = User & Document;
+export type AdminDocument = Admin & Document;
 
 export enum Role {
   Admin = 'admin',
@@ -11,24 +10,18 @@ export enum Role {
 }
 
 @Schema()
-export class User {
+export class Admin {
   @Prop({ required: true })
   name: string;
 
   @Prop({required: true, unique: true})
   email: string;
 
-  @Prop({ required: true, unique:true })
-  company: string;
-
-  @Prop({ required: true, unique: true })
-  username: string;
-
   @Prop({ required: true })
   password: string;
 
   @Prop({ required: true})
-  role: Role
+  role: Role.Admin
 }
 
-export const UserSchema = SchemaFactory.createForClass(User);
+export const AdminSchema = SchemaFactory.createForClass(Admin);

@@ -10,6 +10,6 @@ export class CreateUsersCustomerDto {
   readonly email: string;
   @IsString()
   readonly location: string;
-  @IsNumber()
-  readonly phoneNumber: number;
+  @IsString()
+  readonly phoneNumber: string;
 }
